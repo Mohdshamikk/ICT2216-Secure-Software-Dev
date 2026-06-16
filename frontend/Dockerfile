@@ -4,7 +4,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --no-audit --no-fund
+# npm install (not npm ci) so a lockfile generated on Windows/npm 11 still
+# resolves correctly on this Linux/npm 10 image. npm ci is stricter and
+# rejects a lock that is missing platform-specific (Linux) optional deps.
+RUN npm install --no-audit --no-fund
 
 COPY . .
 RUN npm run build
