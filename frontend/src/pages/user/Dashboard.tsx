@@ -97,7 +97,7 @@ const Dashboard: React.FC = () => {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}
-                  formatter={(value: any) => formatSGD(Number(value))}
+                  formatter={(value: unknown) => formatSGD(Number(value))}
                 />
               </PieChart>
             </ResponsiveContainer>

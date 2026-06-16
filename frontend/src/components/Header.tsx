@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
         {user && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ textAlign: 'right', display: 'none', '@media (min-width: 640px)': { display: 'block' } } as any}>
+            <div style={{ textAlign: 'right', display: 'none' }}>
               <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{user.name}</div>
               <span className={`badge ${getRoleBadgeColor(user.role)}`}>{user.role.toUpperCase()}</span>
             </div>
