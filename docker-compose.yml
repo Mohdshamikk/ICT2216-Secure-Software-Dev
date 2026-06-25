@@ -28,7 +28,7 @@ services:
     env_file: .env
     environment:
       FLASK_ENV:    ${FLASK_ENV:-production}
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
     depends_on:
       db:
         condition: service_healthy
