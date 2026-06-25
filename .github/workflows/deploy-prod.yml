@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd /home/student23/app
+            cd /home/student23/ICT2216-Secure-Software-Dev
 
             git pull origin main
 
