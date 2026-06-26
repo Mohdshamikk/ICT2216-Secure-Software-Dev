@@ -7,9 +7,10 @@ services:
       db:
         condition: service_healthy
         required: false
+    ports:
+      - "127.0.0.1:5000:5000"
     environment:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require
 
   frontend:
-    ports:
-      - "127.0.0.1:8080:8080"
+    profiles: [local]
