@@ -1,10 +1,12 @@
+import os
 from flask import Flask, jsonify
+from flask_cors import CORS
 from app.database_engine import SessionLocal
-
-# from .config import Config
 
 def create_app() -> Flask:
     app = Flask(__name__)
+
+    CORS(app, origins=os.getenv("FRONTEND_URL", "http://localhost:5173"))
 
     @app.route("/")
     def home():
