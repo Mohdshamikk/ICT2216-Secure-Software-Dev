@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
 import os
 from functools import lru_cache
 
@@ -61,3 +62,10 @@ def decrypt_field(ciphertext: str) -> str:
     encrypted = payload[_IV_SIZE_BYTES + _TAG_SIZE_BYTES:] + tag
     plaintext = AESGCM(_get_encryption_key()).decrypt(iv, encrypted, None)
     return plaintext.decode('utf-8')
+
+
+def hash_file_sha256(file_bytes: bytes) -> str:
+    if not isinstance(file_bytes, (bytes, bytearray, memoryview)):
+        raise TypeError('file_bytes must be bytes-like')
+
+    return hashlib.sha256(bytes(file_bytes)).hexdigest()

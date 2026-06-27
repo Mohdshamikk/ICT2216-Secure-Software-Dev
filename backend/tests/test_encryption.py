@@ -27,3 +27,22 @@ def test_encrypt_field_requires_string(monkeypatch):
         assert 'plaintext must be a string' in str(exc)
     else:
         raise AssertionError('TypeError was not raised')
+
+
+def test_hash_file_sha256_known_answer(monkeypatch):
+    encryption = _load_module(monkeypatch)
+
+    assert encryption.hash_file_sha256(b'abc') == (
+        'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
+    )
+
+
+def test_hash_file_sha256_requires_bytes_like(monkeypatch):
+    encryption = _load_module(monkeypatch)
+
+    try:
+        encryption.hash_file_sha256('abc')
+    except TypeError as exc:
+        assert 'file_bytes must be bytes-like' in str(exc)
+    else:
+        raise AssertionError('TypeError was not raised')

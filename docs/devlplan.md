@@ -86,7 +86,7 @@
 - [x] `HC Y` 🔴 **`encrypt_field(plaintext)` and `decrypt_field(ciphertext)` using AES-256-GCM**
   > In `backend/app/utils/encryption.py`. Key loaded from `AES_KEY` env var. Uses a random 12-byte IV per encryption. Ciphertext format: `base64(iv + tag + ciphertext)`. Used for: `totp_secret`, `nric`, `account_number_encrypted`. (SR-02)
 
-- [ ] `HC Y` **`hash_file_sha256(file_bytes)` → hex digest string**
+- [x] `HC Y` **`hash_file_sha256(file_bytes)` → hex digest string**
   > Returns lowercase SHA-256 hex digest of the given bytes. Stored in `bank_statements.file_hash`. Called on upload and on every retrieval for integrity verification. (SR-05)
 
 - [ ] `HC Y` **Unit test all utility functions**
