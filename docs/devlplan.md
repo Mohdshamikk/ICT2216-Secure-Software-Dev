@@ -68,19 +68,19 @@
 ## Phase 1 — Security utilities
 > **Shifan + HC Y.** Build these shared utility functions before anyone touches auth or data storage. All crypto lives here — no team member should roll their own.
 
-- [ ] `Shifan` 🔴 **`hash_password(plaintext)` and `verify_password(plaintext, hashed)`**
+- [x] `Shifan` 🔴 **`hash_password(plaintext)` and `verify_password(plaintext, hashed)`**
   > In `backend/app/utils/crypto.py`. Uses `bcrypt`, work factor 12 (D-01). `hash_password` returns a string. `verify_password` returns bool. Never log or return plaintext. (SR-09)
 
 - [ ] `Shifan` 🔴 **`generate_totp_secret()` and `verify_totp_code(encrypted_secret, code)`**
   > `generate_totp_secret()` returns a base32 string. `verify_totp_code` decrypts the stored secret (using HC Y's `decrypt_field`), then verifies the 6-digit code using `pyotp`. Returns bool. (SR-11)
 
-- [ ] `Shifan` **`get_totp_provisioning_uri(email, secret)`**
+- [x] `Shifan` **`get_totp_provisioning_uri(email, secret)`**
   > Returns the `otpauth://` URI used to generate a QR code for authenticator app setup. (FR-01 / SR-11)
 
-- [ ] `Shifan` **`validate_password_complexity(password)` → `(bool, str)`**
+- [x] `Shifan` **`validate_password_complexity(password)` → `(bool, str)`**
   > Returns `(True, "")` or `(False, reason)`. Rules: min 12 characters, not in a common-passwords blocklist (use `zxcvbn` or a static list of top-1000 passwords), no truncation. (SR-10)
 
-- [ ] `Shifan` **`generate_secure_token()` → raw token + hashed token**
+- [x] `Shifan` **`generate_secure_token()` → raw token + hashed token**
   > Used for email verification and password reset links. Returns `(raw_token, token_hash)`. Raw token is sent by email only; hash is stored in DB. Use `secrets.token_urlsafe(32)` + `hashlib.sha256`. (SR-12)
 
 - [ ] `HC Y` 🔴 **`encrypt_field(plaintext)` and `decrypt_field(ciphertext)` using AES-256-GCM**
