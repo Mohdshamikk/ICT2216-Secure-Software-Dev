@@ -15,6 +15,7 @@ import bcrypt
 import pyotp
 from flask import current_app, has_app_context
 from zxcvbn import zxcvbn
+from cryptography.exceptions import InvalidTag
 
 BCRYPT_WORK_FACTOR = 12
 BCRYPT_MAX_PASSWORD_BYTES = 72
@@ -109,7 +110,7 @@ def verify_totp_code(encrypted_secret: str, code: str) -> bool:
         return False
 
     try:
-        # HC Y will create this file/function in Phase 1.
+        # Shared AES-256-GCM helper implemented in app.utils.encryption.
         from app.utils.encryption import decrypt_field
 
         secret = decrypt_field(encrypted_secret)
@@ -126,7 +127,7 @@ def verify_totp_code(encrypted_secret: str, code: str) -> bool:
         # valid_window=0 accepts only the active 30-second TOTP interval.
         return totp.verify(submitted_code, valid_window=0)
 
-    except (ImportError, ValueError, TypeError, binascii.Error):
+    except (ImportError, ValueError, TypeError, UnicodeDecodeError, binascii.Error, InvalidTag):
         return False
 
 

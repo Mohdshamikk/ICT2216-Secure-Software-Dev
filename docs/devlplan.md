@@ -71,7 +71,7 @@
 - [x] `Shifan` 🔴 **`hash_password(plaintext)` and `verify_password(plaintext, hashed)`**
   > In `backend/app/utils/crypto.py`. Uses `bcrypt`, work factor 12 (D-01). `hash_password` returns a string. `verify_password` returns bool. Never log or return plaintext. (SR-09)
 
-- [ ] `Shifan` 🔴 **`generate_totp_secret()` and `verify_totp_code(encrypted_secret, code)`**
+- [x] `Shifan` 🔴 **`generate_totp_secret()` and `verify_totp_code(encrypted_secret, code)`**
   > `generate_totp_secret()` returns a base32 string. `verify_totp_code` decrypts the stored secret (using HC Y's `decrypt_field`), then verifies the 6-digit code using `pyotp`. Returns bool. (SR-11)
 
 - [x] `Shifan` **`get_totp_provisioning_uri(email, secret)`**

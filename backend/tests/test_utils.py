@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import importlib
+import pyotp
 
 from app.utils.crypto import (
     BCRYPT_WORK_FACTOR,
@@ -10,6 +11,7 @@ from app.utils.crypto import (
     hash_password,
     validate_password_complexity,
     verify_password,
+    verify_totp_code,
 )
 
 
@@ -82,6 +84,25 @@ def test_totp_secret_and_provisioning_uri():
     assert uri.startswith("otpauth://totp/")
     assert "issuer=FinTrack" in uri
 
+def test_verify_totp_code_accepts_valid_encrypted_secret(monkeypatch):
+    encryption = _load_module(monkeypatch)
+
+    secret = generate_totp_secret()
+    encrypted_secret = encryption.encrypt_field(secret)
+    valid_code = pyotp.TOTP(secret).now()
+
+    assert verify_totp_code(encrypted_secret, valid_code) is True
+
+def test_verify_totp_code_rejects_wrong_code(monkeypatch):
+    encryption = _load_module(monkeypatch)
+
+    secret = generate_totp_secret()
+    encrypted_secret = encryption.encrypt_field(secret)
+    valid_code = pyotp.TOTP(secret).now()
+
+    wrong_code = valid_code[:-1] + ("0" if valid_code[-1] != "0" else "1")
+
+    assert verify_totp_code(encrypted_secret, wrong_code) is False
 
 # ============================================================================
 # Encryption Tests
