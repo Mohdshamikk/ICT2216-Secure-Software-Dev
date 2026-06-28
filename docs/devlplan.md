@@ -98,37 +98,37 @@
 ## Phase 2 — Core authentication
 > **Daffa + Shifan + Abdillah.** Phase 1 must be fully done first. Every other feature depends on login working.
 
-- [ ] `Daffa` 🔴 **`POST /api/auth/register`** *(FR-02 / SR-09 / SR-10)*
+- [x] `Daffa` 🔴 **`POST /api/auth/register`** *(FR-02 / SR-09 / SR-10)*
   > Validate email format + uniqueness. Validate password complexity (`validate_password_complexity`). Hash password (`hash_password`). Create user with `status=PENDING`. Generate email verification token (`generate_secure_token`), store hash + expiry in `users`. Send verification email with raw token in link. Return generic 201 (no indication whether email already exists).
 
-- [ ] `Daffa` **`GET /api/auth/verify-email?token=<raw>`** *(FR-02)*
+- [x] `Daffa` **`GET /api/auth/verify-email?token=<raw>`** *(FR-02)*
   > Hash the incoming token, look up `users.email_verification_token_hash`. Check not expired. Set `status=ACTIVE`, clear `email_verification_token_hash` and `email_verification_expires_at`. Return 200.
 
-- [ ] `Daffa` 🔴 **`POST /api/auth/login` — step 1** *(FR-01 / SR-09)*
+- [x] `Daffa` 🔴 **`POST /api/auth/login` — step 1** *(FR-01 / SR-09)*
   > Check account exists and `status=ACTIVE`. Check `locked_until` (Abdillah's middleware). Verify password with `verify_password`. On failure: increment `failed_login_attempts`, log `AUTH_FAILURE` audit event. On success: if `mfa_enabled=True`, return `{"mfa_required": true, "session_challenge": <temp_token>}`; if `mfa_enabled=False`, create full session (see Abdillah's session creation task). Log `AUTH_SUCCESS`.
 
-- [ ] `Daffa` **`POST /api/auth/login/mfa` — step 2** *(FR-01 / SR-11)*
+- [x] `Daffa` **`POST /api/auth/login/mfa` — step 2** *(FR-01 / SR-11)*
   > Validate the `session_challenge` from step 1. Verify TOTP code (`verify_totp_code`). On success: create full session, set session cookie. On failure: increment `failed_login_attempts`. Log `MFA_FAILURE` or `AUTH_SUCCESS`.
 
-- [ ] `Daffa` **`POST /api/auth/logout`** *(FR-01 / SR-19)*
+- [x] `Daffa` **`POST /api/auth/logout`** *(FR-01 / SR-19)*
   > Delete `sessions` row for current session. Set cookie expiry to the past. Return 200. Works even if session is already gone (idempotent).
 
-- [ ] `Daffa` **`GET /api/auth/me`**
+- [x] `Daffa` **`GET /api/auth/me`**
   > Return: `id`, `email`, `display_name`, `role.role_name`, `mfa_enabled`, `status`. No password hash, no secrets, no NRIC.
 
-- [ ] `Daffa` **`POST /api/auth/password-reset/request`** *(FR-14 / SR-12)*
+- [x] `Daffa` **`POST /api/auth/password-reset/request`** *(FR-14 / SR-12)*
   > Look up user by email. Whether or not the email exists, return the same 200 response (prevents email enumeration). If user exists: generate reset token (`generate_secure_token`), store hash + `expires_at = now + 15 min` in `password_reset_tokens`. Send email with raw token. Log `PASSWORD_RESET_REQUESTED`.
 
-- [ ] `Daffa` **`POST /api/auth/password-reset/confirm`** *(FR-14 / SR-12)*
+- [x] `Daffa` **`POST /api/auth/password-reset/confirm`** *(FR-14 / SR-12)*
   > Hash incoming token, find matching `password_reset_tokens` row. Check `used_at IS NULL` and `expires_at > now`. Validate new password complexity. Hash new password. Update `users.password_hash`. Set `password_reset_tokens.used_at = now`. Log `PASSWORD_RESET_USED`.
 
-- [ ] `Daffa` **`POST /api/auth/mfa/setup`** *(FR-01 / SR-11)*
+- [x] `Daffa` **`POST /api/auth/mfa/setup`** *(FR-01 / SR-11)*
   > Generate TOTP secret. Encrypt with `encrypt_field`. Store in `users.totp_secret`. Return QR URI (`get_totp_provisioning_uri`). Do NOT set `mfa_enabled=True` yet — user must verify first.
 
-- [ ] `Daffa` **`POST /api/auth/mfa/enable`** *(FR-01 / SR-11)*
+- [x] `Daffa` **`POST /api/auth/mfa/enable`** *(FR-01 / SR-11)*
   > Verify the submitted TOTP code against the stored (encrypted) secret. If valid: set `mfa_enabled=True`. If invalid: return 400.
 
-- [ ] `Daffa` **`POST /api/auth/mfa/disable`** *(FR-01)*
+- [x] `Daffa` **`POST /api/auth/mfa/disable`** *(FR-01)*
   > Require current TOTP code to confirm. Set `mfa_enabled=False`, clear `totp_secret`. Log event.
 
 - [ ] `Shifan` **Email + reset token generation wired up** *(SR-12)*
