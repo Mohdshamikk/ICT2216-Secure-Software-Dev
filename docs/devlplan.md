@@ -57,7 +57,7 @@
 - [x] `HC Y` 🔴 **Commit `.env.example` to repo with all required keys**
   > Never commit `.env` itself (SR-04). `.env.example` lists every required key with placeholder values. Add `.env` to `.gitignore` if not already there.
 
-- [ ] `Wen Yuan` **Set up React app routing and auth context**
+- [x] `Wen Yuan` 🔴 **Set up React app routing and auth context**
   > React Router v6 routes structure. `AuthContext` that stores current user + session state. `ProtectedRoute` component that redirects unauthenticated users to `/login`.
 
 - [ ] `All` **Smoke test: `/api/health` returns 200 and confirms DB connection**
