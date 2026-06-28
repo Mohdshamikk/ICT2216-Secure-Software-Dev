@@ -57,11 +57,12 @@
 - [x] `HC Y` 🔴 **Commit `.env.example` to repo with all required keys**
   > Never commit `.env` itself (SR-04). `.env.example` lists every required key with placeholder values. Add `.env` to `.gitignore` if not already there.
 
-- [ ] `Wen Yuan` **Set up React app routing and auth context**
+- [x] `Wen Yuan` **Set up React app routing and auth context**
   > React Router v6 routes structure. `AuthContext` that stores current user + session state. `ProtectedRoute` component that redirects unauthenticated users to `/login`.
 
 - [ ] `All` **Smoke test: `/api/health` returns 200 and confirms DB connection**
   > Simple Flask route that runs `db.session.execute('SELECT 1')` and returns `{"status": "ok"}`. Every team member confirms this works in their local environment.
+  > ✅ Confirmed: Daffa
 
 ---
 
@@ -71,7 +72,7 @@
 - [x] `Shifan` 🔴 **`hash_password(plaintext)` and `verify_password(plaintext, hashed)`**
   > In `backend/app/utils/crypto.py`. Uses `bcrypt`, work factor 12 (D-01). `hash_password` returns a string. `verify_password` returns bool. Never log or return plaintext. (SR-09)
 
-- [ ] `Shifan` 🔴 **`generate_totp_secret()` and `verify_totp_code(encrypted_secret, code)`**
+- [x] `Shifan` 🔴 **`generate_totp_secret()` and `verify_totp_code(encrypted_secret, code)`**
   > `generate_totp_secret()` returns a base32 string. `verify_totp_code` decrypts the stored secret (using HC Y's `decrypt_field`), then verifies the 6-digit code using `pyotp`. Returns bool. (SR-11)
 
 - [x] `Shifan` **`get_totp_provisioning_uri(email, secret)`**
@@ -89,7 +90,7 @@
 - [x] `HC Y` **`hash_file_sha256(file_bytes)` → hex digest string**
   > Returns lowercase SHA-256 hex digest of the given bytes. Stored in `bank_statements.file_hash`. Called on upload and on every retrieval for integrity verification. (SR-05)
 
-- [ ] `HC Y` **Unit test all utility functions**
+- [x] `HC Y` **Unit test all utility functions**
   > `tests/test_utils.py`: test round-trip encrypt/decrypt, correct bcrypt verify, wrong password returns False, TOTP verify with valid code, TOTP verify with wrong code, SHA-256 known-answer test.
 
 ---
