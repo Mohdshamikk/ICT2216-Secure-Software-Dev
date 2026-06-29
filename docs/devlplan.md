@@ -131,7 +131,7 @@
 - [x] `Daffa` **`POST /api/auth/mfa/disable`** *(FR-01)*
   > Require current TOTP code to confirm. Set `mfa_enabled=False`, clear `totp_secret`. Log event.
 
-- [ ] `Shifan` **Email + reset token generation wired up** *(SR-12)*
+- [x] `Shifan` **Email + reset token generation wired up** *(SR-12)*
   > Confirm `generate_secure_token` is being called correctly in register and password reset flows. Hash stored in DB, raw token in email link only. Verify 15-min expiry and single-use check in `/password-reset/confirm`.
 
 - [ ] `Abdillah` 🔴 **Session creation helper** *(SR-17 / SR-18)*
