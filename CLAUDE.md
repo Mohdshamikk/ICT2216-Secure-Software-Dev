@@ -26,8 +26,9 @@ backend/
 │   ├── models.py            # All 9 SQLAlchemy ORM models
 │   ├── routes/              # One blueprint per feature area
 │   ├── middleware/          # auth.py (require_auth), session.py (validate_session)
-│   ├── services/            # audit.py (log_event), mail.py (send_*)
+│   ├── services/            # audit.py (log_event), mail.py (send_*), statement_parser.py, storage.py
 │   └── utils/               # crypto.py, encryption.py, lockout.py
+├── scripts/                 # seed_demo_user.py (local demo account)
 ├── tests/
 └── run.py
 
@@ -55,6 +56,8 @@ Before implementing anything, check if it already exists:
 | Secure token (email links) | `app/utils/crypto.py` → `generate_secure_token` |
 | Field encryption / decryption | `app/utils/encryption.py` → `encrypt_field`, `decrypt_field` |
 | File integrity hash | `app/utils/encryption.py` → `hash_file_sha256` |
+| Parse bank statement (CSV/PDF) | `app/services/statement_parser.py` → `parse_csv`, `parse_pdf` (returns `(rows, skipped)`; raises `ParseError`) |
+| Store uploaded file (Supabase) | `app/services/storage.py` → `upload_statement(object_path, bytes, content_type)` (raises `StorageError`) |
 | Audit logging | `app/services/audit.py` → `log_event(event_type, outcome, ip, ...)` |
 | Send email | `app/services/mail.py` → `send_verification_email`, `send_password_reset_email` |
 | Protect a route | `app/middleware/auth.py` → `@require_auth` (binds `g.current_user`, `g.session`) |

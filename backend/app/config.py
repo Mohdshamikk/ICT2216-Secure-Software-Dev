@@ -38,6 +38,13 @@ class Config:
     MAX_UPLOAD_SIZE_MB = int(os.getenv('MAX_UPLOAD_SIZE_MB', 10))
     STORAGE_BASE_PATH = os.getenv('STORAGE_BASE_PATH')
     ALLOWED_EXTENSIONS = set(os.getenv('ALLOWED_EXTENSIONS', 'pdf,csv').split(','))
+    # Reject oversized request bodies before they are buffered (existing 413 handler formats the response)
+    MAX_CONTENT_LENGTH = int(os.getenv('MAX_UPLOAD_SIZE_MB', 10)) * 1024 * 1024
+
+    # Supabase Storage — raw bank-statement files live in a private bucket
+    SUPABASE_URL = os.getenv('SUPABASE_URL')
+    SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
+    SUPABASE_BUCKET = os.getenv('SUPABASE_BUCKET', 'bank-statements')
 
 
 class DevelopmentConfig(Config):

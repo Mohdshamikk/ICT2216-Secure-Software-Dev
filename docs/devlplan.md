@@ -186,16 +186,16 @@
 - [ ] `HC Y` **Compute and store SHA-256 hash on upload** *(SR-05)*
   > Call `hash_file_sha256(file_bytes)` after reading the file. Store in `bank_statements.file_hash`. On every subsequent retrieval of the file, re-hash and compare — reject if mismatch.
 
-- [ ] `Wen Yuan` **CSV parser: extract transactions from bank statement CSV**
-  > Parse rows into: `transaction_date` (DATE), `amount` (DECIMAL), `merchant_name` (str), `description` (str). Handle: missing columns, malformed dates, non-numeric amounts. Return list of dicts or raise `ParseError`.
+- [x] `Wen Yuan` **CSV parser: extract transactions from bank statement CSV**
+  > Parse rows into: `transaction_date` (DATE), `amount` (DECIMAL), `merchant_name` (str), `description` (str). Handle: missing columns, malformed dates, non-numeric amounts. Return list of dicts or raise `ParseError`. Implemented in `app/services/statement_parser.py`.
 
-- [ ] `Wen Yuan` **PDF parser: extract transactions from bank statement PDF**
-  > Use `pdfplumber` or `PyMuPDF`. Same output format as CSV parser. Best-effort — log a warning if extraction yields zero rows.
+- [x] `Wen Yuan` **PDF parser: extract transactions from bank statement PDF**
+  > Use `pdfplumber` or `PyMuPDF`. Same output format as CSV parser. Best-effort — log a warning if extraction yields zero rows. Implemented with `pdfplumber` in `app/services/statement_parser.py`.
 
-- [ ] `Wen Yuan` **`POST /api/statements/upload`** *(FR-07)*
-  > Orchestrate in order: (1) size check, (2) MIME check, (3) rename, (4) store, (5) hash, (6) parse transactions, (7) insert `bank_statement` + `transaction` rows in a single DB transaction (rollback all on any step failure). Encrypt `account_number_encrypted` if extracted. Log `STATEMENT_UPLOADED` (SUCCESS or FAILURE).
+- [x] `Wen Yuan` **`POST /api/statements/upload`** *(FR-07)*
+  > Orchestrate in order: (1) size check, (2) MIME check, (3) rename, (4) store, (5) hash, (6) parse transactions, (7) insert `bank_statement` + `transaction` rows in a single DB transaction (rollback all on any step failure). Encrypt `account_number_encrypted` if extracted. Log `STATEMENT_UPLOADED` (SUCCESS or FAILURE). Imported rows default to global "Other Expense"/"Other Income" by amount sign. Stored via Supabase Storage (`app/services/storage.py`). NOTE: size pre-check (Abdillah SR-08) and magic-byte MIME (HC Y SR-03) are left as `# TODO` baselines.
 
-- [ ] `Wen Yuan` **`GET /api/statements`** *(FR-07)*
+- [x] `Wen Yuan` **`GET /api/statements`** *(FR-07)*
   > Return list of current user's statements: `id`, `file_name`, `status`, `uploaded_at`. No `storage_path`, no `file_hash` in response.
 
 ---
@@ -203,8 +203,8 @@
 ## Phase 5 — Transactions and financial features
 > **Wen Yuan.** Depends on Phase 4 (upload pipeline creates transactions). Auth middleware from Phase 2 must be in place.
 
-- [ ] `Wen Yuan` **`GET /api/transactions`** *(FR-06)*
-  > List own transactions. Support query params: `from` (date), `to` (date), `category_id`, `type` (INCOME/EXPENSE). Object-level check: `user_id == current_user.id` enforced at query level (not just result filter).
+- [x] `Wen Yuan` **`GET /api/transactions`** *(FR-06)*
+  > List own transactions. Support query params: `from` (date), `to` (date), `category_id`, `type` (INCOME/EXPENSE). Object-level check: `user_id == current_user.id` enforced at query level (not just result filter). Implemented in `app/routes/transactions.py` (`from`/`to` filters; `category_id`/`type` filters still TODO). Other Phase 5 endpoints remain open.
 
 - [ ] `Wen Yuan` **`POST /api/transactions`** *(FR-06)*
   > Accept: `transaction_date`, `amount`, `category_id`, `merchant_name?`, `description?`. Validate: `amount` is a valid decimal (not float), `category_id` exists and is either global or belongs to current user, `transaction_date` is a valid date not in the far future. Insert and return created transaction.
