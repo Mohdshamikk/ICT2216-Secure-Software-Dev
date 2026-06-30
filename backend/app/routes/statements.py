@@ -10,6 +10,7 @@ from uuid import uuid4
 from flask import Blueprint, current_app, jsonify, request
 
 from app.middleware.auth import require_auth
+from app.utils.encryption import hash_file_sha256
 
 statements_bp = Blueprint('statements', __name__, url_prefix='/api/statements')
 
@@ -79,9 +80,30 @@ def _statement_storage_path(original_filename: str) -> Path:
 	return _storage_base_path() / storage_filename
 
 
-def _upload_statement_file(uploaded_file):
+def _uploaded_file_bytes(uploaded_file) -> bytes:
+	stream = uploaded_file.stream
+	current_position = stream.tell()
+	stream.seek(0)
+	file_bytes = stream.read()
+	stream.seek(current_position)
+	return file_bytes
+
+
+def _statement_upload_metadata(uploaded_file) -> dict[str, object]:
 	storage_path = _statement_storage_path(uploaded_file.filename)
-	_ = storage_path
+	file_bytes = _uploaded_file_bytes(uploaded_file)
+	file_hash = hash_file_sha256(file_bytes)
+	return {
+		'storage_path': storage_path,
+		'file_hash': file_hash,
+		'file_bytes': file_bytes,
+	}
+
+
+def _upload_statement_file(uploaded_file):
+	metadata = _statement_upload_metadata(uploaded_file)
+	_ = metadata['storage_path']
+	_ = metadata['file_hash']
 	return jsonify({'message': 'Upload accepted'}), 200
 
 

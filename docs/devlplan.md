@@ -180,7 +180,7 @@
 - [x] `HC Y` **Random server-generated filename** *(SR-03)*
   > Generate `str(uuid4()) + original_extension`. Never use the client-supplied filename for storage. Store original filename in `bank_statements.file_name` for display only.
 
-- [ ] `HC Y` **Store file outside web root** *(SR-03)*
+- [x] `HC Y` **Store file outside web root** *(SR-03)*
   > Write to the path in `STORAGE_BASE_PATH` env var (must not be inside the Flask `static/` directory). For S3-compatible: upload to private bucket. Store resulting path in `bank_statements.storage_path`. Never include this path in API responses.
 
 - [ ] `HC Y` **Compute and store SHA-256 hash on upload** *(SR-05)*
