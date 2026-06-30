@@ -15,7 +15,7 @@ from app.middleware.auth import require_auth
 from app.models import BankStatement, Category, Transaction
 from app.services.audit import log_event
 from app.services.statement_parser import ParseError, parse_csv, parse_pdf
-from app.services.storage import StorageError, upload_statement
+from app.services.storage import StorageError, fetch_statement, upload_statement
 from app.utils.encryption import hash_file_sha256
 
 statements_bp = Blueprint('statements', __name__, url_prefix='/api/statements')
@@ -236,3 +236,43 @@ def list_statements():
         }
         for s in statements
     ]), 200
+
+@statements_bp.get('/<statement_id>')
+@require_auth
+def get_statement(statement_id):
+  
+    ip, ua = _ip(), _ua()
+    user = g.current_user
+
+    # Fetch statement (verify ownership and get stored hash)
+    statement = BankStatement.query.filter_by(
+        id=statement_id,
+        user_id=user.id
+    ).first()
+
+    if not statement:
+        return jsonify({'error': 'Statement not found'}), 404
+
+    # Retrieve file from Supabase
+    try:
+        file_bytes = fetch_statement(statement.storage_path)
+    except StorageError:
+        current_app.logger.exception('statement retrieval failed')
+        log_event('STATEMENT_RETRIEVED', 'FAILURE', ip, user_id=user.id, user_agent=ua)
+        return jsonify({'error': 'Failed to retrieve file'}), 502
+
+    # Verify integrity by comparing hashes
+    computed_hash = hash_file_sha256(file_bytes)
+    if computed_hash != statement.file_hash:
+        current_app.logger.error(f'Hash mismatch for statement {statement.id}')
+        log_event('STATEMENT_RETRIEVED', 'FAILURE', ip, user_id=user.id, user_agent=ua)
+        return jsonify({'error': 'File integrity check failed'}), 409
+
+    log_event('STATEMENT_RETRIEVED', 'SUCCESS', ip, user_id=user.id, resource_id=statement.id, user_agent=ua)
+
+    # Return file with appropriate content type
+    content_type = 'text/csv' if statement.file_name.endswith('.csv') else 'application/pdf'
+    return file_bytes, 200, {
+        'Content-Disposition': f'attachment; filename="{statement.file_name}"',
+        'Content-Type': content_type,
+    }
