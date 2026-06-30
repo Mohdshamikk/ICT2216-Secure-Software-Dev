@@ -154,16 +154,16 @@
 ## Phase 3 — Profile and account management
 > **Daffa.** Depends on Phase 2 auth middleware being in place.
 
-- [ ] `Daffa` **`GET /api/users/me`** *(FR-03)*
+- [x] `Daffa` **`GET /api/users/me`** *(FR-03)*
   > Return: `display_name`, `email`, `role`, `mfa_enabled`, `status`, `created_at`. No sensitive fields (no `nric` raw value, no `password_hash`).
 
-- [ ] `Daffa` **`PATCH /api/users/me`** *(FR-04)*
+- [x] `Daffa` **`PATCH /api/users/me`** *(FR-04)*
   > Accept: `display_name` (non-empty string). Validate and update. Return updated profile.
 
-- [ ] `Daffa` **`PATCH /api/users/me/password`** *(FR-04 / SR-10)*
+- [x] `Daffa` **`PATCH /api/users/me/password`** *(FR-04 / SR-10)*
   > Accept: `current_password`, `new_password`. Verify `current_password` with `verify_password`. Validate `new_password` with `validate_password_complexity`. Hash and store. Invalidate all other active sessions (prevent session fixation after password change). Log event.
 
-- [ ] `Daffa` **`DELETE /api/users/me`** *(FR-05)*
+- [x] `Daffa` **`DELETE /api/users/me`** *(FR-05)*
   > Accept: `password` for re-confirmation. Verify password. Delete user row — all related data cascades (sessions, transactions, statements, consents, etc.). Log `ACCOUNT_DELETED` before deletion. Return 200.
 
 ---
