@@ -36,6 +36,7 @@ class Config:
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
     MFA_ISSUER = os.getenv('MFA_ISSUER', 'FinTrack')
     MAX_UPLOAD_SIZE_MB = int(os.getenv('MAX_UPLOAD_SIZE_MB', 10))
+    STORAGE_BASE_PATH = os.getenv('STORAGE_BASE_PATH')
     ALLOWED_EXTENSIONS = set(os.getenv('ALLOWED_EXTENSIONS', 'pdf,csv').split(','))
 
 

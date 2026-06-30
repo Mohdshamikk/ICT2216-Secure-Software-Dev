@@ -64,9 +64,24 @@ def _server_generated_filename(original_filename: str) -> str:
 	return f'{uuid4()}{Path(original_filename).suffix}'
 
 
+def _storage_base_path() -> Path:
+	base_path = Path(current_app.config['STORAGE_BASE_PATH']).expanduser().resolve()
+	static_path = Path(current_app.static_folder).expanduser().resolve()
+
+	if base_path == static_path or static_path in base_path.parents:
+		raise ValueError('STORAGE_BASE_PATH must be outside the Flask static directory')
+
+	return base_path
+
+
+def _statement_storage_path(original_filename: str) -> Path:
+	storage_filename = _server_generated_filename(original_filename)
+	return _storage_base_path() / storage_filename
+
+
 def _upload_statement_file(uploaded_file):
-	storage_filename = _server_generated_filename(uploaded_file.filename)
-	_ = storage_filename
+	storage_path = _statement_storage_path(uploaded_file.filename)
+	_ = storage_path
 	return jsonify({'message': 'Upload accepted'}), 200
 
 
