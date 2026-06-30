@@ -1,6 +1,10 @@
 from flask import Flask, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from app.config import config
 from app.extensions import db, cors
+
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
 
 
 def create_app(config_name='development'):
@@ -9,6 +13,7 @@ def create_app(config_name='development'):
 
     db.init_app(app)
     cors.init_app(app, origins=app.config['FRONTEND_URL'])
+    limiter.init_app(app)
 
     from app.routes.health import health_bp
     from app.routes.auth import auth_bp
