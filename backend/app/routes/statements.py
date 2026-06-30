@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import csv
 import io
+from pathlib import Path
 
 import magic
+from uuid import uuid4
 
 from flask import Blueprint, current_app, jsonify, request
 
@@ -58,7 +60,13 @@ def _uploaded_file_mime_type(uploaded_file) -> str | None:
 	return None
 
 
+def _server_generated_filename(original_filename: str) -> str:
+	return f'{uuid4()}{Path(original_filename).suffix}'
+
+
 def _upload_statement_file(uploaded_file):
+	storage_filename = _server_generated_filename(uploaded_file.filename)
+	_ = storage_filename
 	return jsonify({'message': 'Upload accepted'}), 200
 
 

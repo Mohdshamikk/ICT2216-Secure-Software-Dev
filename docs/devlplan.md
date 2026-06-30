@@ -177,7 +177,7 @@
 - [x] `HC Y` **MIME type validation: check file magic bytes, not just extension** *(SR-03)*
   > Use `python-magic` or equivalent. Accept only `text/csv` and `application/pdf`. Reject everything else with 415.
 
-- [ ] `HC Y` **Random server-generated filename** *(SR-03)*
+- [x] `HC Y` **Random server-generated filename** *(SR-03)*
   > Generate `str(uuid4()) + original_extension`. Never use the client-supplied filename for storage. Store original filename in `bank_statements.file_name` for display only.
 
 - [ ] `HC Y` **Store file outside web root** *(SR-03)*
