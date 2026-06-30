@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta
 from functools import lru_cache
 
+
 from flask import Blueprint, current_app, g, jsonify, make_response, request
 
 from app.extensions import db
@@ -22,6 +23,7 @@ from app.utils.crypto import (
     verify_totp_code,
 )
 from app.utils.encryption import encrypt_field
+from app import limiter
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -170,6 +172,7 @@ def verify_email():
 # ---------------------------------------------------------------------------
 
 @auth_bp.post('/login')
+@limiter.limit('10 per minute')
 def login():
     data = request.get_json(silent=True) or {}
     email = (data.get('email') or '').strip().lower()
@@ -306,6 +309,7 @@ def me():
 # ---------------------------------------------------------------------------
 
 @auth_bp.post('/password-reset/request')
+@limiter.limit('5 per minute')
 def password_reset_request():
     data = request.get_json(silent=True) or {}
     email = (data.get('email') or '').strip().lower()
