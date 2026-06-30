@@ -171,16 +171,16 @@
 ## Phase 4 — File upload and validation pipeline
 > **Wen Yuan + HC Y + Abdillah.** Depends on Phase 2 (auth) and Phase 1 (encryption + hashing utilities). This phase implements the 7-layer validation pipeline from §9.5.
 
-- [ ] `Abdillah` 🔴 **Server-side file size check: reject > 10 MB before any processing** *(SR-08)*
+- [x] `Abdillah` 🔴 **Server-side file size check: reject > 10 MB before any processing** *(SR-08)*
   > Check `Content-Length` header or read byte count. If > 10,485,760 bytes, return 413 immediately — do not write to disk, do not parse. Cannot be bypassed by omitting the Content-Length header.
 
-- [ ] `HC Y` **MIME type validation: check file magic bytes, not just extension** *(SR-03)*
+- [x] `HC Y` **MIME type validation: check file magic bytes, not just extension** *(SR-03)*
   > Use `python-magic` or equivalent. Accept only `text/csv` and `application/pdf`. Reject everything else with 415.
 
-- [ ] `HC Y` **Random server-generated filename** *(SR-03)*
+- [x] `HC Y` **Random server-generated filename** *(SR-03)*
   > Generate `str(uuid4()) + original_extension`. Never use the client-supplied filename for storage. Store original filename in `bank_statements.file_name` for display only.
 
-- [ ] `HC Y` **Store file outside web root** *(SR-03)*
+- [x] `HC Y` **Store file outside web root** *(SR-03)*
   > Write to the path in `STORAGE_BASE_PATH` env var (must not be inside the Flask `static/` directory). For S3-compatible: upload to private bucket. Store resulting path in `bank_statements.storage_path`. Never include this path in API responses.
 
 - [ ] `HC Y` **Compute and store SHA-256 hash on upload** *(SR-05)*
