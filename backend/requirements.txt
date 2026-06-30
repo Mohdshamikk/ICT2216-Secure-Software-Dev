@@ -11,3 +11,7 @@ bcrypt==5.0.0
 pyotp==2.10.0
 zxcvbn==4.5.0
 Flask-Limiter==4.1.1
+
+# Bank statement ingestion (FR-07)
+pdfplumber==0.11.4
+supabase==2.9.1
