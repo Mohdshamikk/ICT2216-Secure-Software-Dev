@@ -134,19 +134,19 @@
 - [x] `Shifan` **Email + reset token generation wired up** *(SR-12)*
   > Confirm `generate_secure_token` is being called correctly in register and password reset flows. Hash stored in DB, raw token in email link only. Verify 15-min expiry and single-use check in `/password-reset/confirm`.
 
-- [ ] `Abdillah` 🔴 **Session creation helper** *(SR-17 / SR-18)*
+- [x] `Abdillah` 🔴 **Session creation helper** *(SR-17 / SR-18)*
   > `create_session(user_id, ip_address, user_agent)`: insert row into `sessions` with `expires_at = now + 8 hours`. Return session `id`. Called by login step 1 (no MFA) and login step 2 (MFA confirmed).
 
-- [ ] `Abdillah` 🔴 **Session cookie config** *(SR-17)*
+- [x] `Abdillah` 🔴 **Session cookie config** *(SR-17)*
   > Set on every session creation response: `HttpOnly=True`, `Secure=True` (prod), `SameSite='Lax'`, `Path='/'`. Cookie value = raw session UUID (the `sessions.id`, not a hash — DB lookup validates it).
 
-- [ ] `Abdillah` 🔴 **Session middleware — idle + absolute timeout** *(FR-12 / SR-18)*
+- [x] `Abdillah` 🔴 **Session middleware — idle + absolute timeout** *(FR-12 / SR-18)*
   > In `backend/app/middleware/session.py`. On every authenticated request: (1) check `sessions.expires_at > now` — if not, delete session, return 401. (2) check `now - sessions.last_active < 15 min` — if not, delete session, return 401. (3) update `sessions.last_active = now`.
 
-- [ ] `Abdillah` 🔴 **Account lockout — increment and check** *(SR-07)*
+- [x] `Abdillah` 🔴 **Account lockout — increment and check** *(SR-07)*
   > On each failed login: `users.failed_login_attempts += 1`. If `failed_login_attempts >= 5`: `users.locked_until = now + 10 min`. On every login attempt: if `locked_until IS NOT NULL AND locked_until > now`, return 403 with a generic message. On successful login: reset `failed_login_attempts = 0`, clear `locked_until`.
 
-- [ ] `Abdillah` **Rate limiting on auth endpoints** *(SR-07)*
+- [x] `Abdillah` **Rate limiting on auth endpoints** *(SR-07)*
   > Apply Flask-Limiter (or equivalent) to: `POST /api/auth/login` (10/min per IP), `POST /api/auth/password-reset/request` (5/min per IP), `POST /api/statements/upload` (20/hour per user). Return 429 on breach.
 
 ---
@@ -154,16 +154,16 @@
 ## Phase 3 — Profile and account management
 > **Daffa.** Depends on Phase 2 auth middleware being in place.
 
-- [ ] `Daffa` **`GET /api/users/me`** *(FR-03)*
+- [x] `Daffa` **`GET /api/users/me`** *(FR-03)*
   > Return: `display_name`, `email`, `role`, `mfa_enabled`, `status`, `created_at`. No sensitive fields (no `nric` raw value, no `password_hash`).
 
-- [ ] `Daffa` **`PATCH /api/users/me`** *(FR-04)*
+- [x] `Daffa` **`PATCH /api/users/me`** *(FR-04)*
   > Accept: `display_name` (non-empty string). Validate and update. Return updated profile.
 
-- [ ] `Daffa` **`PATCH /api/users/me/password`** *(FR-04 / SR-10)*
+- [x] `Daffa` **`PATCH /api/users/me/password`** *(FR-04 / SR-10)*
   > Accept: `current_password`, `new_password`. Verify `current_password` with `verify_password`. Validate `new_password` with `validate_password_complexity`. Hash and store. Invalidate all other active sessions (prevent session fixation after password change). Log event.
 
-- [ ] `Daffa` **`DELETE /api/users/me`** *(FR-05)*
+- [x] `Daffa` **`DELETE /api/users/me`** *(FR-05)*
   > Accept: `password` for re-confirmation. Verify password. Delete user row — all related data cascades (sessions, transactions, statements, consents, etc.). Log `ACCOUNT_DELETED` before deletion. Return 200.
 
 ---
