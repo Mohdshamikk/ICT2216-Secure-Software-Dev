@@ -206,7 +206,7 @@
 - [x] `Wen Yuan` **`GET /api/transactions`** *(FR-06)*
   > List own transactions. Support query params: `from` (date), `to` (date), `category_id`, `type` (INCOME/EXPENSE). Object-level check: `user_id == current_user.id` enforced at query level (not just result filter). Implemented in `app/routes/transactions.py` (`from`/`to` filters; `category_id`/`type` filters still TODO). Other Phase 5 endpoints remain open.
 
-- [ ] `Wen Yuan` **`POST /api/transactions`** *(FR-06)*
+- [x] `Wen Yuan` **`POST /api/transactions`** *(FR-06)*
   > Accept: `transaction_date`, `amount`, `category_id`, `merchant_name?`, `description?`. Validate: `amount` is a valid decimal (not float), `category_id` exists and is either global or belongs to current user, `transaction_date` is a valid date not in the far future. Insert and return created transaction.
 
 - [ ] `Wen Yuan` **`PATCH /api/transactions/:id`** *(FR-06)*
