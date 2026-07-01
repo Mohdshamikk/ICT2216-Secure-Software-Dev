@@ -183,7 +183,7 @@
 - [x] `HC Y` **Store file outside web root** *(SR-03)*
   > Write to the path in `STORAGE_BASE_PATH` env var (must not be inside the Flask `static/` directory). For S3-compatible: upload to private bucket. Store resulting path in `bank_statements.storage_path`. Never include this path in API responses.
 
-- [ ] `HC Y` **Compute and store SHA-256 hash on upload** *(SR-05)*
+- [x] `HC Y` **Compute and store SHA-256 hash on upload** *(SR-05)*
   > Call `hash_file_sha256(file_bytes)` after reading the file. Store in `bank_statements.file_hash`. On every subsequent retrieval of the file, re-hash and compare — reject if mismatch.
 
 - [x] `Wen Yuan` **CSV parser: extract transactions from bank statement CSV**
@@ -209,11 +209,11 @@
 - [x] `Wen Yuan` **`POST /api/transactions`** *(FR-06)*
   > Accept: `transaction_date`, `amount`, `category_id`, `merchant_name?`, `description?`. Validate: `amount` is a valid decimal (not float), `category_id` exists and is either global or belongs to current user, `transaction_date` is a valid date not in the far future. Insert and return created transaction.
 
-- [ ] `Wen Yuan` **`PATCH /api/transactions/:id`** *(FR-06)*
-  > Object-level check: confirm `transactions.user_id == current_user.id` before updating. Partial update: accept any subset of editable fields.
+- [x] `Wen Yuan` **`PATCH /api/transactions/:id`** *(FR-06)*
+  > Object-level check: confirm `transactions.user_id == current_user.id` before updating. Partial update: accept any subset of editable fields. Implemented in `app/routes/transactions.py` (`update_transaction`); shared field validators reused with `POST`.
 
-- [ ] `Wen Yuan` **`DELETE /api/transactions/:id`** *(FR-06)*
-  > Object-level check before delete. Return 204.
+- [x] `Wen Yuan` **`DELETE /api/transactions/:id`** *(FR-06)*
+  > Object-level check before delete. Return 204. Implemented in `app/routes/transactions.py` (`delete_transaction`); logs `TRANSACTION_DELETED` before row removal.
 
 - [ ] `Wen Yuan` **`GET /api/dashboard`** *(FR-08)*
   > Return three datasets for current user: (1) spending by category this month (SUM grouped by category), (2) monthly total spend/income for last 6 months, (3) top 5 merchants by total spend this month. All aggregated with SQL — amounts are NOT decrypted (D-03).
