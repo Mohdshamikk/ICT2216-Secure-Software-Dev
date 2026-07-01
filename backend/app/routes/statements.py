@@ -2,16 +2,11 @@ from __future__ import annotations
 
 import csv
 import io
+import os
 from pathlib import Path
+from uuid import uuid4
 
 import magic
-from uuid import uuid4
-
-
-from app.middleware.auth import require_auth
-import os
-from uuid import uuid4
-
 from flask import Blueprint, current_app, g, jsonify, request
 
 from app import limiter
@@ -20,7 +15,7 @@ from app.middleware.auth import require_auth
 from app.models import BankStatement, Category, Transaction
 from app.services.audit import log_event
 from app.services.statement_parser import ParseError, parse_csv, parse_pdf
-from app.services.storage import StorageError, upload_statement
+from app.services.storage import StorageError, fetch_statement, upload_statement
 from app.utils.encryption import hash_file_sha256
 
 statements_bp = Blueprint('statements', __name__, url_prefix='/api/statements')
@@ -76,21 +71,6 @@ def _server_generated_filename(original_filename: str) -> str:
 	return f'{uuid4()}{Path(original_filename).suffix}'
 
 
-def _storage_base_path() -> Path:
-	base_path = Path(current_app.config['STORAGE_BASE_PATH']).expanduser().resolve()
-	static_path = Path(current_app.static_folder).expanduser().resolve()
-
-	if base_path == static_path or static_path in base_path.parents:
-		raise ValueError('STORAGE_BASE_PATH must be outside the Flask static directory')
-
-	return base_path
-
-
-def _statement_storage_path(original_filename: str) -> Path:
-	storage_filename = _server_generated_filename(original_filename)
-	return _storage_base_path() / storage_filename
-
-
 def _uploaded_file_bytes(uploaded_file) -> bytes:
 	stream = uploaded_file.stream
 	current_position = stream.tell()
@@ -100,41 +80,7 @@ def _uploaded_file_bytes(uploaded_file) -> bytes:
 	return file_bytes
 
 
-def _statement_upload_metadata(uploaded_file) -> dict[str, object]:
-	storage_path = _statement_storage_path(uploaded_file.filename)
-	file_bytes = _uploaded_file_bytes(uploaded_file)
-	file_hash = hash_file_sha256(file_bytes)
-	return {
-		'storage_path': storage_path,
-		'file_hash': file_hash,
-		'file_bytes': file_bytes,
-	}
 
-
-def _upload_statement_file(uploaded_file):
-	metadata = _statement_upload_metadata(uploaded_file)
-	_ = metadata['storage_path']
-	_ = metadata['file_hash']
-	return jsonify({'message': 'Upload accepted'}), 200
-
-
-@statements_bp.post('/upload')
-@require_auth
-def upload_statement():
-	uploaded_file = request.files.get('file')
-
-	if uploaded_file is None or uploaded_file.filename == '':
-		return jsonify({'error': 'file is required'}), 400
-
-	max_upload_size_bytes = current_app.config['MAX_UPLOAD_SIZE_MB'] * 1024 * 1024
-	if _uploaded_file_size_bytes(uploaded_file) > max_upload_size_bytes:
-		return jsonify({'error': 'File too large'}), 413
-
-	mime_type = _uploaded_file_mime_type(uploaded_file)
-	if mime_type not in {'text/csv', 'application/pdf'}:
-		return jsonify({'error': 'Unsupported file type'}), 415
-
-	return _upload_statement_file(uploaded_file)
 def _ip() -> str:
     return request.headers.get('X-Real-IP', request.remote_addr) or '0.0.0.0'
 
@@ -169,25 +115,27 @@ def upload():
     ext = os.path.splitext(original_name)[1].lower().lstrip('.')
 
     # 1. Size check — baseline byte count (MAX_CONTENT_LENGTH also rejects at the WSGI layer).
-    #    TODO: Abdillah — Phase 4 SR-08: dedicated pre-stream 413 that cannot be bypassed by omitting Content-Length.
-    file_bytes = file.read()
-    if not file_bytes:
-        return jsonify({'error': 'Empty file'}), 400
-    if len(file_bytes) > current_app.config['MAX_UPLOAD_SIZE_MB'] * 1024 * 1024:
+    max_upload_size_bytes = current_app.config['MAX_UPLOAD_SIZE_MB'] * 1024 * 1024
+    if _uploaded_file_size_bytes(file) > max_upload_size_bytes:
         log_event('STATEMENT_UPLOADED', 'FAILURE', ip, user_id=user.id, user_agent=ua)
         return jsonify({'error': 'File too large'}), 413
 
-    # 2. Type check — baseline extension allowlist.
-    #    TODO: HC Y — Phase 4 SR-03: validate magic bytes with python-magic, not just the extension.
-    if ext not in current_app.config['ALLOWED_EXTENSIONS']:
+    # 2. MIME check — validate magic bytes.
+    mime_type = _uploaded_file_mime_type(file)
+    if mime_type not in {'text/csv', 'application/pdf'}:
         log_event('STATEMENT_UPLOADED', 'FAILURE', ip, user_id=user.id, user_agent=ua)
         return jsonify({'error': 'Unsupported file type'}), 415
 
-    # 3. Random server-generated object path (never trust the client filename).
+    # 3. Generate random server-generated filename (never trust client filename).
+    server_filename = _server_generated_filename(original_name)
     content_type = 'text/csv' if ext == 'csv' else 'application/pdf'
-    object_path = f'{user.id}/{uuid4()}.{ext}'
 
-    # 4. Store the raw file in the private Supabase bucket.
+    # 4. Read and store the raw file in the private Supabase bucket.
+    file_bytes = _uploaded_file_bytes(file)
+    if not file_bytes:
+        return jsonify({'error': 'Empty file'}), 400
+
+    object_path = f'{user.id}/{server_filename}'
     try:
         storage_path = upload_statement(object_path, file_bytes, content_type)
     except StorageError:
@@ -195,10 +143,10 @@ def upload():
         log_event('STATEMENT_UPLOADED', 'FAILURE', ip, user_id=user.id, user_agent=ua)
         return jsonify({'error': 'Failed to store file'}), 502
 
-    # 5. Integrity hash (reuse existing util).
+    # 5. Compute integrity hash.
     file_hash = hash_file_sha256(file_bytes)
 
-    # 6. Parse.
+    # 6. Parse transactions from file.
     status = 'PROCESSED'
     rows: list[dict] = []
     skipped = 0
@@ -209,7 +157,7 @@ def upload():
     if not rows:
         status = 'FAILED'
 
-    # 7. Import statement + transactions in a single DB transaction.
+    # 7. Insert statement and transactions in a single DB transaction.
     statement = BankStatement(
         user_id=user.id,
         file_name=original_name[:255],
@@ -288,3 +236,43 @@ def list_statements():
         }
         for s in statements
     ]), 200
+
+@statements_bp.get('/<statement_id>')
+@require_auth
+def get_statement(statement_id):
+  
+    ip, ua = _ip(), _ua()
+    user = g.current_user
+
+    # Fetch statement (verify ownership and get stored hash)
+    statement = BankStatement.query.filter_by(
+        id=statement_id,
+        user_id=user.id
+    ).first()
+
+    if not statement:
+        return jsonify({'error': 'Statement not found'}), 404
+
+    # Retrieve file from Supabase
+    try:
+        file_bytes = fetch_statement(statement.storage_path)
+    except StorageError:
+        current_app.logger.exception('statement retrieval failed')
+        log_event('STATEMENT_RETRIEVED', 'FAILURE', ip, user_id=user.id, user_agent=ua)
+        return jsonify({'error': 'Failed to retrieve file'}), 502
+
+    # Verify integrity by comparing hashes
+    computed_hash = hash_file_sha256(file_bytes)
+    if computed_hash != statement.file_hash:
+        current_app.logger.error(f'Hash mismatch for statement {statement.id}')
+        log_event('STATEMENT_RETRIEVED', 'FAILURE', ip, user_id=user.id, user_agent=ua)
+        return jsonify({'error': 'File integrity check failed'}), 409
+
+    log_event('STATEMENT_RETRIEVED', 'SUCCESS', ip, user_id=user.id, resource_id=statement.id, user_agent=ua)
+
+    # Return file with appropriate content type
+    content_type = 'text/csv' if statement.file_name.endswith('.csv') else 'application/pdf'
+    return file_bytes, 200, {
+        'Content-Disposition': f'attachment; filename="{statement.file_name}"',
+        'Content-Type': content_type,
+    }

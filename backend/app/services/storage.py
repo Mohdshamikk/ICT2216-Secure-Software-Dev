@@ -52,3 +52,17 @@ def upload_statement(object_path: str, file_bytes: bytes, content_type: str) -> 
     except Exception as exc:
         raise StorageError(f'Failed to upload statement to storage: {exc}') from exc
     return object_path
+
+
+def fetch_statement(storage_path: str) -> bytes:
+    """Fetch stored file bytes from the configured private bucket.
+
+    Used to retrieve a file for hash verification on download. Raises StorageError on failure.
+    """
+    bucket = current_app.config.get('SUPABASE_BUCKET', 'bank-statements')
+    client = _get_client()
+    try:
+        response = client.storage.from_(bucket).download(storage_path)
+    except Exception as exc:
+        raise StorageError(f'Failed to fetch statement from storage: {exc}') from exc
+    return response
